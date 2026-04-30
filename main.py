@@ -14,6 +14,10 @@ MOTOR_RIGHT_SPEED_PIN = 11
 MOTOR_RIGHT_A_PIN = 10
 MOTOR_RIGHT_B_PIN = 9
 
+SERVO_PIN = 12
+SERVO_ANGLE_UP = 0
+SERVO_ANGLE_DOWN = 30
+
 DEAD_ZONE = 0.5
 MAX_PWM = 150
 
@@ -35,6 +39,12 @@ def drive_motor(pi, pin_a, pin_b, value):
     else:
         pi.write(pin_a, 0)
         pi.write(pin_b, 0)
+        
+        
+def set_servo_angle(pi, angle):
+    # MG90 pulse range: 500us - 2500us
+    pulse_width = int(map(angle, 0, 180, 500, 2500))
+    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
 
 def main():
 
@@ -76,6 +86,42 @@ def main():
         
         drive_motor(pi, MOTOR_LEFT_A_PIN, MOTOR_LEFT_B_PIN, left)
         drive_motor(pi, MOTOR_RIGHT_A_PIN, MOTOR_RIGHT_B_PIN, right)
+        
+        if controller.circle:
+            set_servo_angle(pi, SERVO_ANGLE_UP)
+            
+        if controller.square:
+            set_servo_angle(pi, SERVO_ANGLE_DOWN)
+            
+        if controller.up:
+            pi.write(MOTOR_LEFT_A_PIN, 0)
+            pi.write(MOTOR_LEFT_B_PIN, 1)
+            pi.write(MOTOR_RIGHT_A_PIN, 0)
+            pi.write(MOTOR_RIGHT_B_PIN, 1)
+
+        elif controller.down:
+            pi.write(MOTOR_LEFT_A_PIN, 1)
+            pi.write(MOTOR_LEFT_B_PIN, 0)
+            pi.write(MOTOR_RIGHT_A_PIN, 1)
+            pi.write(MOTOR_RIGHT_B_PIN, 0)
+
+        elif controller.left:
+            pi.write(MOTOR_LEFT_A_PIN, 1)
+            pi.write(MOTOR_LEFT_B_PIN, 0)
+            pi.write(MOTOR_RIGHT_A_PIN, 0)
+            pi.write(MOTOR_RIGHT_B_PIN, 1)
+
+        elif controller.right:
+            pi.write(MOTOR_LEFT_A_PIN, 0)
+            pi.write(MOTOR_LEFT_B_PIN, 1)
+            pi.write(MOTOR_RIGHT_A_PIN, 1)
+            pi.write(MOTOR_RIGHT_B_PIN, 0)
+
+        else:
+            pi.write(MOTOR_LEFT_A_PIN, 0)
+            pi.write(MOTOR_LEFT_B_PIN, 0)
+            pi.write(MOTOR_RIGHT_A_PIN, 0)
+            pi.write(MOTOR_RIGHT_B_PIN, 0)
 
     pi.stop()
 

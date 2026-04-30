@@ -17,6 +17,11 @@ class MyController(Controller):
         self.circle  = False
         self.triangle = False
         self.square  = False
+        
+        self.up = False
+        self.down = False
+        self.left = False
+        self.right = False
 
     # --- Left stick ---
     def on_L3_up(self, value):
@@ -81,3 +86,23 @@ class MyController(Controller):
 
     def on_square_release(self):
         self.square = False
+        
+    def on_up_arrow_press(self):
+        self.up = True
+
+    def on_down_arrow_press(self):
+        self.down = True
+        
+    def on_up_down_arrow_release(self):
+        self.down = False
+        self.up = False
+
+    def on_left_arrow_press(self):
+        self.left = True
+        
+    def on_left_right_arrow_release(self):
+        self.left = False
+        self.right = False
+
+    def on_right_arrow_press(self):
+        self.right = True

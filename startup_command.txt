@@ -1,0 +1,1 @@
+sudo pigpoid - activates gpio pins on the PI

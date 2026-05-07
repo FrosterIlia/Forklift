@@ -24,9 +24,9 @@ FR_STEP, FR_DIR = 24, 23
 RL_STEP, RL_DIR = 27, 17
 RR_STEP, RR_DIR = 11, 9
 
-SERVO_PIN = 20
-SERVO_ANGLE_UP = 0
-SERVO_ANGLE_DOWN = 30
+SERVO_RIGHT_PIN = 20
+SERVO_RIGHT_ANGLE_UP = 70
+SERVO_LEFT_ANGLE_DOWN = 45
 
 #-------------------------------
 # CREATE MOTORS
@@ -41,11 +41,11 @@ motors = [FL, FR, RL, RR]
 def map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
-def set_servo_angle(angle):
+def set_left_servo_angle(angle):
     # MG90 pulse range: 500us - 2500us
     pulse_width = int(map(angle, 0, 180, 500, 2500))
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse_width)
-
+    pi.set_servo_pulsewidth(SERVO_RIGHT_PIN, pulse_width)
+    
 #------------------------------
 # HELPERS
 #------------------------------
@@ -115,9 +115,8 @@ def stop(speed=0):
 def run_sequence(sequence):
     for step_num, (action, duration, speed) in enumerate(sequence, 1):
         print(f"Step {step_num}: {action.__name__} for {duration}s at speed {speed}")
-        
         action(speed)
-        if action != stop:
+        if action != stop and action != set_left_servo_angle:
             start_all()
         
         time.sleep(duration) 
@@ -126,17 +125,26 @@ def run_sequence(sequence):
 
 # Define your routine here! 
 ROBOT_SEQUENCE = [
-    # (forward, 4.0, 1500),
-    # (stop, 1.0, 0),    
-    # (move_right, 2.0, 1500),    
-    # (stop, 1.0, 0),     
-    # (forward, 1.0, 1500) ,
-    # (stop, 1.0, 0),
-    # (turn_right, 4.0, 1000), 
-    # (stop, 1.0, 0), 
-    # (forward, 4.0, 1500),
-    (set_servo_angle, 1.0, SERVO_ANGLE_UP),
-    (set_servo_angle, 1.0, SERVO_ANGLE_DOWN)
+    (forward, 4.0, 1500),
+    (stop, 1.0, 0), 
+    (move_right, 1.5, 1500),  
+    (stop, 1.0, 0),   
+    (forward, 1.0, 1500) ,
+    (stop, 1.0, 0), 
+    (set_left_servo_angle, 1.0, SERVO_RIGHT_ANGLE_UP),
+    (stop, 1.0, 0), 
+    (backward, 1.0, 1000),
+    (stop, 1.0, 0), 
+    (turn_right, 6.0, 500), 
+    (stop, 1.0, 0), 
+    (set_left_servo_angle, 1.0, SERVO_LEFT_ANGLE_DOWN),
+    (stop, 1.0, 0), 
+    (forward, 5.5, 1500),
+    (stop, 1.0, 0), 
+    (backward, 3.0, 1000)
+    # (move_left, 0.2, 1000)
+    
+    # (set_left_servo_angle, 1.0, SERVO_LEFT_ANGLE_DOWN)
 ]
 
 #------------------------------

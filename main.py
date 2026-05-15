@@ -20,9 +20,11 @@ print("Connected to pigpio!")
 # PIN DEFINITIONS
 #-------------------------------
 FL_STEP, FL_DIR = 13, 6
-FR_STEP, FR_DIR = 24, 23
-RL_STEP, RL_DIR = 27, 17
-RR_STEP, RR_DIR = 11, 9
+FR_STEP, FR_DIR = 7, 8 # motor 3
+RL_STEP, RL_DIR = 27, 17 # motor 1
+RR_STEP, RR_DIR = 24, 23 # motor 4
+
+EN_PINS = [4, 10, 5, 18, 25]
 
 SERVO_RIGHT_PIN = 20
 SERVO_RIGHT_ANGLE_UP = 70
@@ -31,12 +33,12 @@ SERVO_LEFT_ANGLE_DOWN = 45
 #-------------------------------
 # CREATE MOTORS
 #-------------------------------
-FL = Stepper(FL_STEP, FL_DIR, pi, 1)
-FR = Stepper(FR_STEP, FR_DIR, pi)
-RL = Stepper(RL_STEP, RL_DIR, pi, 1)
-RR = Stepper(RR_STEP, RR_DIR, pi)
+FL = Stepper(FL_STEP, FL_DIR, pi)
+FR = Stepper(FR_STEP, FR_DIR, pi, 1)
+RL = Stepper(RL_STEP, RL_DIR, pi)
+RR = Stepper(RR_STEP, RR_DIR, pi, 1)
 
-motors = [FL, FR, RL, RR]   
+motors = [FL, FR, RL, RR]
 
 def map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
@@ -152,9 +154,17 @@ ROBOT_SEQUENCE = [
 #-----------------------------
 if __name__ == "__main__":
     try:
+        for i in EN_PINS:
+            pi.set_mode(i, pigpio.OUTPUT)
+            pi.write(i, 0)
         print("Starting sequence...")
-        run_sequence(ROBOT_SEQUENCE)
+        # run_sequence(ROBOT_SEQUENCE)
+        forward(1000)
+        RR.move()
+        # start_all()
         print("Sequence complete!")
+        while True:
+            pass
 
     except KeyboardInterrupt:
         print("\nSequence interrupted by user.")

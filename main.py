@@ -6,6 +6,7 @@
 import time
 import pigpio
 from stepper import Stepper
+from Servo import Servo
 
 # Connect to pigpio with some error checking
 pi = pigpio.pi()
@@ -37,6 +38,11 @@ FL = Stepper(FL_STEP, FL_DIR, pi)
 FR = Stepper(FR_STEP, FR_DIR, pi, 1)
 RL = Stepper(RL_STEP, RL_DIR, pi)
 RR = Stepper(RR_STEP, RR_DIR, pi, 1)
+
+servo_1 = Servo(15, 30, 0, pi)
+servo_2 = Servo(14, 30, 0, pi)
+servo_3 = Servo(12, 30, 0, pi)
+servo_4 = Servo(19, 30, 0, pi)
 
 motors = [FL, FR, RL, RR]
 
@@ -159,9 +165,18 @@ if __name__ == "__main__":
             pi.write(i, 0)
         print("Starting sequence...")
         # run_sequence(ROBOT_SEQUENCE)
-        forward(1000)
-        RR.move()
+        # RR.move()
         # start_all()
+        
+        servo_1.move_up()
+        servo_2.move_up()
+        servo_3.move_up()
+        servo_4.move_up()
+        time.sleep(2)
+        servo_4.move_down()
+        servo_1.move_down()
+        servo_2.move_down()
+        servo_3.move_down()
         print("Sequence complete!")
         while True:
             pass

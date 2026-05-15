@@ -5,11 +5,21 @@
 
 import time
 import pigpio
+import cv2
+
+from network_camera import NetworkCamera
 from stepper import Stepper
 from Servo import Servo
 
+IP = '192.168.0.100'
+PORT = 4015
+
 # Connect to pigpio with some error checking
 pi = pigpio.pi()
+
+top_camera = NetworkCamera(IP, PORT)
+center_camera = NetworkCamera(IP, 5015)
+
 
 if not pi.connected:
     print("Not connected to pigpio daemon! Run sudo systemctl start pigpiod")
@@ -45,14 +55,6 @@ servo_3 = Servo(12, 30, 0, pi)
 servo_4 = Servo(19, 30, 0, pi)
 
 motors = [FL, FR, RL, RR]
-
-def map(x, in_min, in_max, out_min, out_max):
-    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
-
-def set_left_servo_angle(angle):
-    # MG90 pulse range: 500us - 2500us
-    pulse_width = int(map(angle, 0, 180, 500, 2500))
-    pi.set_servo_pulsewidth(SERVO_RIGHT_PIN, pulse_width)
     
 #------------------------------
 # HELPERS
@@ -118,44 +120,6 @@ def stop(speed=0):
     stop_all()
 
 #------------------------------
-# SEQUENCE FRAMEWORK
-#-----------------------------
-def run_sequence(sequence):
-    for step_num, (action, duration, speed) in enumerate(sequence, 1):
-        print(f"Step {step_num}: {action.__name__} for {duration}s at speed {speed}")
-        action(speed)
-        if action != stop and action != set_left_servo_angle:
-            start_all()
-        
-        time.sleep(duration) 
-            
-        stop_all()
-
-# Define your routine here! 
-ROBOT_SEQUENCE = [
-    (forward, 4.0, 1500),
-    (stop, 1.0, 0), 
-    (move_right, 1.5, 1500),  
-    (stop, 1.0, 0),   
-    (forward, 1.0, 1500) ,
-    (stop, 1.0, 0), 
-    (set_left_servo_angle, 1.0, SERVO_RIGHT_ANGLE_UP),
-    (stop, 1.0, 0), 
-    (backward, 1.0, 1000),
-    (stop, 1.0, 0), 
-    (turn_right, 6.0, 500), 
-    (stop, 1.0, 0), 
-    (set_left_servo_angle, 1.0, SERVO_LEFT_ANGLE_DOWN),
-    (stop, 1.0, 0), 
-    (forward, 5.5, 1500),
-    (stop, 1.0, 0), 
-    (backward, 3.0, 1000)
-    # (move_left, 0.2, 1000)
-    
-    # (set_left_servo_angle, 1.0, SERVO_LEFT_ANGLE_DOWN)
-]
-
-#------------------------------
 # MAIN LOOP
 #-----------------------------
 if __name__ == "__main__":
@@ -168,18 +132,21 @@ if __name__ == "__main__":
         # RR.move()
         # start_all()
         
-        servo_1.move_up()
-        servo_2.move_up()
-        servo_3.move_up()
-        servo_4.move_up()
-        time.sleep(2)
-        servo_4.move_down()
-        servo_1.move_down()
-        servo_2.move_down()
-        servo_3.move_down()
         print("Sequence complete!")
         while True:
-            pass
+            frame_top = top_camera.receive_frame("Top")
+            if frame_top is not None:
+                cv2.imshow('Overhead Camera', frame_top)
+                
+            frame_center = center_camera.receive_frame("Center")
+            if frame_center is not None:
+                cv2.imshow('Center Camera', frame_center)
+                
+                
+            if cv2.waitKey(5) & 0xFF == ord('q'):
+                    print("Exiting camera view...")
+                    break
+
 
     except KeyboardInterrupt:
         print("\nSequence interrupted by user.")
@@ -187,3 +154,4 @@ if __name__ == "__main__":
     finally:
         stop_all()
         pi.stop()
+        cv2.destroyAllWindows()

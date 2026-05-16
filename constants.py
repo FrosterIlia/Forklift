@@ -4,3 +4,4 @@ RL_STEP, RL_DIR, RL_EN = 7, 8, 5 # motor 1
 RR_STEP, RR_DIR, RR_EN = 24, 23, 18 # motor 4
 
 
+FORKLIFT_ARUCO_ID = 15

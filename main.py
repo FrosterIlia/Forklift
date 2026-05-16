@@ -6,19 +6,24 @@
 import time
 import pigpio
 import cv2
+import math
 
 from network_camera import NetworkCamera
 from mecanum_drive import MecanumDrive
 from Servo import Servo
+from pose_estimator import PoseEstimator
+from homography_matrix_def import *
+from constants import *
 
 IP = '192.168.0.100'
-PORT = 4015
+PORT_1 = 4015
+PORT_2 = 5015
 
 # Connect to pigpio with some error checking
 pi = pigpio.pi()
 
-top_camera = NetworkCamera(IP, PORT)
-center_camera = NetworkCamera(IP, 5015)
+top_camera = NetworkCamera(IP, PORT_1)
+center_camera = NetworkCamera(IP, PORT_2)
 
 cap = cv2.VideoCapture(0)
 
@@ -33,18 +38,26 @@ servo_2 = Servo(14, 30, 0, pi)
 servo_3 = Servo(12, 30, 0, pi)
 servo_4 = Servo(19, 30, 0, pi)
 
+# drive_controller = MecanumDrive(pi, 75, 40)
 drive_controller = MecanumDrive(pi, 1, 1)
 
+pose_estimator = PoseEstimator(FORKLIFT_ARUCO_ID)
 
 if __name__ == "__main__":
     try:
-        drive_controller.set_velocities(0, 1000, 0)
+        # drive_controller.set_velocities(0, 0, 100)
         # drive_controller.stop_all()
         print("Sequence complete!")
         while True:
-            # frame_top = top_camera.receive_frame("Top")
-            # if frame_top is not None:
-            #     cv2.imshow('Overhead Camera', frame_top)
+            frame_top = top_camera.receive_frame("Top")
+            if frame_top is not None:
+                cv2.imshow('Overhead Camera', frame_top)
+                state = pose_estimator.estimate_pose(frame_top)
+                if state:
+                    x, y, theta = state
+                    print(f"Robot Location: X: {x:.1f}mm, Y: {y:.1f}mm, Heading: {math.degrees(theta):.1f} degrees")
+                else:
+                    print("Robot not detected.")
                 
             # frame_center = center_camera.receive_frame("Center")
             # if frame_center is not None:

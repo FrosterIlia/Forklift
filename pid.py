@@ -36,7 +36,6 @@ class PID:
             error = -error # Apply to the local variable!
 
         self.I = self.I + (error * self.ki * dt) 
-        print(self.I)
         
         # Apply the adjustable limits
         self.I = max(min(self.I, self.i_max), self.i_min)

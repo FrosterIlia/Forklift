@@ -30,7 +30,7 @@ class MecanumDrive:
         w3 = self.vx + self.vy - self.w * (self.Lx + self.Ly)
         w4 = self.vx - self.vy + self.w * (self.Lx + self.Ly)
         
-        return (w1, w3, w2, w4)
+        return (w1, w2, w3, w4)
     
     def set_velocities(self, vx, vy, w):
         self.vx = vx

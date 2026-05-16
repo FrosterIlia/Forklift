@@ -10,14 +10,14 @@ class Position:
 
 class PositionController:
     def __init__(self):
-        self.x_pid = PID(4, 1, 0, inverted = True, i_min = -50, i_max = 50)
-        self.y_pid = PID(4, 1, 0, inverted = True, i_min = -50, i_max = 50)
-        self.angle_pid = PID(0.1, 0, 0)
+        self.x_pid = PID(4.5, 0.35, 0, inverted=True)
+        self.y_pid = PID(7, 1, 0, inverted=True)
         
-        # --- Timing variables for PID throttling ---
+        self.angle_pid = PID(250, 0, 0, i_min=-50, i_max=50) 
+        
         self.last_run_time = time.time()
-        self.min_dt = 0.05  # Limit to 20Hz (50ms). Change to 0.033 for ~30Hz.
-        self.last_velocities = (0.0, 0.0) # Fallback to prevent breaking main loop
+        self.min_dt = 0.05  
+        self.last_velocities = (0.0, 0.0, 0.0) # Updated to hold 3 values
         
     def get_local_velocities(self, current_pos, target_pos):
         current_time = time.time()
@@ -28,9 +28,7 @@ class PositionController:
             
         self.last_run_time = current_time
         
-        # error_angle = target_pos.angle - current_pos.angle
-        # error_angle = math.atan2(math.sin(error_angle), math.cos(error_angle))
-        
+        # --- 1. X and Y Translation PIDs ---
         self.x_pid.set_input(current_pos.x)
         self.y_pid.set_input(current_pos.y)
         
@@ -43,13 +41,29 @@ class PositionController:
         vx_global = self.x_pid.get_output()
         vy_global = self.y_pid.get_output()
         
+        # --- 2. Theta Rotation PID ---
+        # Calculate raw error
+        raw_error_angle = target_pos.angle - current_pos.angle
+        
+        # Wrap error to strictly [-pi, pi]
+        wrapped_error_angle = math.atan2(math.sin(raw_error_angle), math.cos(raw_error_angle))
+        
+        # Trick the PID by passing the wrapped error as the setpoint and 0 as input
+        self.angle_pid.set_setpoint(wrapped_error_angle)
+        self.angle_pid.set_input(0)
+        
+        self.angle_pid.compute()
+        
+        # This is your w (omega) for the mecanum kinematics
+        v_theta = self.angle_pid.get_output() 
+        
+        # --- 3. Matrix Transformation ---
         theta = current_pos.angle
         
-        # Apply matrix transformation on the angle that the forklift is currently oriented
         vx_local = (vx_global * math.cos(theta)) + (vy_global * math.sin(theta))
         vy_local = (-vx_global * math.sin(theta)) + (vy_global * math.cos(theta))
         
-        # Save the freshly calculated velocities to use as the fallback next time
-        self.last_velocities = (vx_local, vy_local)
+        # Save and return all three velocities
+        self.last_velocities = (vx_local, vy_local, v_theta)
         
-        return (vx_local, vy_local)
+        return (vx_local, vy_local, v_theta)

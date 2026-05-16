@@ -59,11 +59,12 @@ if __name__ == "__main__":
                 state = pose_estimator.estimate_pose(frame_top)
                 if state:
                     x, y, theta = state
-                    current_position = Position(x, y, theta - 90)
-                    target_position = Position(70, 100, 90)
+                    theta -= math.radians(90) # This is our 0, forks are pointed towards the wall with boxes
+                    current_position = Position(x, y, theta)
+                    target_position = Position(150, 300, math.radians(180))
                     vels = position_controller.get_local_velocities(current_position, target_position)
-                    print(f"y_vel: {vels[1]}, x_vel: {vels[0]}")
-                    drive_controller.set_velocities(vels[1], vels[0], 0)
+                    print(f"y_vel: {vels[1]}, x_vel: {vels[0]}, theta_vel: {vels[2]}")
+                    drive_controller.set_velocities(vels[1], vels[0], vels[2])
                     print(f"Robot Location: X: {x:.1f}mm, Y: {y:.1f}mm, Heading: {math.degrees(theta):.1f} degrees")
                 else:
                     print("Robot not detected.")

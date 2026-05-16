@@ -13,7 +13,7 @@ class MecanumDrive:
         self.pi = pi
         
         self.FL = Stepper(FL_STEP, FL_DIR, FL_EN, self.pi)
-        self.FR = Stepper(FR_STEP, FR_DIR, FR_EN, self.pi)
+        self.FR = Stepper(FR_STEP, FR_DIR, FR_EN, self.pi, 1)
         self.RL = Stepper(RL_STEP, RL_DIR, RL_EN, self.pi)
         self.RR = Stepper(RR_STEP, RR_DIR, RR_EN, self.pi, 1)
         

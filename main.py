@@ -38,7 +38,7 @@ drive_controller = MecanumDrive(pi, 1, 1)
 
 if __name__ == "__main__":
     try:
-        drive_controller.set_velocities(500, 0, 0)
+        drive_controller.set_velocities(0, 1000, 0)
         # drive_controller.stop_all()
         print("Sequence complete!")
         while True:
@@ -63,6 +63,9 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("\nSequence interrupted by user.")
+        drive_controller.stop_all()
+        pi.stop()
+        cv2.destroyAllWindows()
 
     finally:
         pi.stop()

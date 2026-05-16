@@ -11,18 +11,14 @@ import math
 from network_camera import NetworkCamera
 from mecanum_drive import MecanumDrive
 from Servo import Servo
-from pose_estimator import PoseEstimator
+from pos_estimator import PositioinEstimator
 from homography_matrix_def import *
 from constants import *
 from position_controller import PositionController, Position
+from main_state_machine import *
 
 # Connect to pigpio with some error checking
 pi = pigpio.pi()
-
-top_camera = NetworkCamera(IP, PORT_1)
-center_camera = NetworkCamera(IP, PORT_2)
-
-cap = cv2.VideoCapture(0)
 
 if not pi.connected:
     print("Not connected to pigpio daemon! Run sudo systemctl start pigpiod")
@@ -30,48 +26,15 @@ if not pi.connected:
 
 print("Connected to pigpio!")
 
-servo_1 = Servo(SERVO_1_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
-servo_2 = Servo(SERVO_2_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
-servo_3 = Servo(SERVO_3_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
-servo_4 = Servo(SERVO_4_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
 
-# drive_controller = MecanumDrive(pi, 75, 40)
-drive_controller = MecanumDrive(pi, MECANUM_LX, MECANUM_LY)
+main_sm = MainStateMachine(pi)
 
-pose_estimator = PoseEstimator(FORKLIFT_ARUCO_ID)
 
-position_controller = PositionController()
-
-if __name__ == "__main__":
+def main():
     try:
-        print("Sequence complete!")
-        
+        main_sm.initialize(main_sm.debug_state)
         while True:
-            frame_top = top_camera.receive_frame("Top")
-            if frame_top is not None:
-                cv2.imshow('Overhead Camera', frame_top)
-                state = pose_estimator.estimate_pose(frame_top)
-                if state:
-                    x, y, theta = state
-                    theta -= math.radians(90) # This is our 0, forks are pointed towards the wall with boxes
-                    current_position = Position(x, y, theta)
-                    target_position = Position(150, 300, math.radians(180))
-                    vels = position_controller.get_local_velocities(current_position, target_position)
-                    print(f"y_vel: {vels[1]}, x_vel: {vels[0]}, theta_vel: {vels[2]}")
-                    drive_controller.set_velocities(vels[1], vels[0], vels[2])
-                    print(f"Robot Location: X: {x:.1f}mm, Y: {y:.1f}mm, Heading: {math.degrees(theta):.1f} degrees")
-                else:
-                    print("Robot not detected.")
-                
-                
-            # ret, frame = cap.read()
-            
-            # cv2.imshow('camera', frame)
-            
-            
-            
-            
-            
+            main_sm.update()
                 
             if cv2.waitKey(5) & 0xFF == ord('q'):
                 print("Exiting camera view...")
@@ -80,11 +43,14 @@ if __name__ == "__main__":
 
     except KeyboardInterrupt:
         print("\nSequence interrupted by user.")
-        drive_controller.stop_all()
+        main_sm.drive_controller.stop_all()
         pi.stop()
         cv2.destroyAllWindows()
 
     finally:
         pi.stop()
-        drive_controller.stop_all()
+        main_sm.drive_controller.stop_all()
         cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    main()

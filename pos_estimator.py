@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import math
 
-class PoseEstimator:
+class PositioinEstimator:
     def __init__(self, marker_id, marker_dict=cv2.aruco.DICT_6X6_250, transform_matrix=None):
         """
         Initializes the PoseEstimator for the warehouse robot.

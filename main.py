@@ -16,10 +16,6 @@ from homography_matrix_def import *
 from constants import *
 from position_controller import PositionController, Position
 
-IP = '192.168.0.100'
-PORT_1 = 4015
-PORT_2 = 5015
-
 # Connect to pigpio with some error checking
 pi = pigpio.pi()
 
@@ -34,13 +30,13 @@ if not pi.connected:
 
 print("Connected to pigpio!")
 
-servo_1 = Servo(SERVO_1_PIN, 30, 0, pi)
-servo_2 = Servo(SERVO_2_PIN, 30, 0, pi)
-servo_3 = Servo(SERVO_3_PIN, 30, 0, pi)
-servo_4 = Servo(SERVO_4_PIN, 30, 0, pi)
+servo_1 = Servo(SERVO_1_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
+servo_2 = Servo(SERVO_2_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
+servo_3 = Servo(SERVO_3_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
+servo_4 = Servo(SERVO_4_PIN, SERVO_UP_POSITION, SERVO_DOWN_POSITION, pi)
 
 # drive_controller = MecanumDrive(pi, 75, 40)
-drive_controller = MecanumDrive(pi, 1, 1)
+drive_controller = MecanumDrive(pi, MECANUM_LX, MECANUM_LY)
 
 pose_estimator = PoseEstimator(FORKLIFT_ARUCO_ID)
 
@@ -48,8 +44,6 @@ position_controller = PositionController()
 
 if __name__ == "__main__":
     try:
-        # drive_controller.set_velocities(0, 0, 100)
-        # drive_controller.stop_all()
         print("Sequence complete!")
         
         while True:
@@ -69,9 +63,6 @@ if __name__ == "__main__":
                 else:
                     print("Robot not detected.")
                 
-            # frame_center = center_camera.receive_frame("Center")
-            # if frame_center is not None:
-            #     cv2.imshow('Center Camera', frame_center)
                 
             # ret, frame = cap.read()
             

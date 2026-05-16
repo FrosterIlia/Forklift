@@ -17,7 +17,7 @@ class PositionController:
         
         self.last_run_time = time.time()
         self.min_dt = 0.05  
-        self.last_velocities = (0.0, 0.0, 0.0) # Updated to hold 3 values
+        self.last_velocities = (0.0, 0.0, 0.0) 
         
     def get_local_velocities(self, current_pos, target_pos):
         current_time = time.time()
@@ -28,7 +28,6 @@ class PositionController:
             
         self.last_run_time = current_time
         
-        # --- 1. X and Y Translation PIDs ---
         self.x_pid.set_input(current_pos.x)
         self.y_pid.set_input(current_pos.y)
         
@@ -41,7 +40,6 @@ class PositionController:
         vx_global = self.x_pid.get_output()
         vy_global = self.y_pid.get_output()
         
-        # --- 2. Theta Rotation PID ---
         # Calculate raw error
         raw_error_angle = target_pos.angle - current_pos.angle
         
@@ -54,16 +52,13 @@ class PositionController:
         
         self.angle_pid.compute()
         
-        # This is your w (omega) for the mecanum kinematics
         v_theta = self.angle_pid.get_output() 
         
-        # --- 3. Matrix Transformation ---
         theta = current_pos.angle
         
         vx_local = (vx_global * math.cos(theta)) + (vy_global * math.sin(theta))
         vy_local = (-vx_global * math.sin(theta)) + (vy_global * math.cos(theta))
         
-        # Save and return all three velocities
         self.last_velocities = (vx_local, vy_local, v_theta)
         
         return (vx_local, vy_local, v_theta)

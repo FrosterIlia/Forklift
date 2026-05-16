@@ -13,9 +13,9 @@ class MecanumDrive:
         self.pi = pi
         
         self.FL = Stepper(FL_STEP, FL_DIR, FL_EN, self.pi)
-        self.FR = Stepper(FR_STEP, FR_DIR, FR_EN, self.pi, 1)
+        self.RR = Stepper(FR_STEP, FR_DIR, FR_EN, self.pi, 1)
         self.RL = Stepper(RL_STEP, RL_DIR, RL_EN, self.pi)
-        self.RR = Stepper(RR_STEP, RR_DIR, RR_EN, self.pi, 1)
+        self.FR = Stepper(RR_STEP, RR_DIR, RR_EN, self.pi, 1)
         
         self.motors = [self.FL, self.FR, self.RL, self.RR]
         
@@ -30,7 +30,7 @@ class MecanumDrive:
         w3 = self.vx + self.vy - self.w * (self.Lx + self.Ly)
         w4 = self.vx - self.vy + self.w * (self.Lx + self.Ly)
         
-        return (w1, w2, w3, w4)
+        return (w1, w3, w2, w4)
     
     def set_velocities(self, vx, vy, w):
         self.vx = vx

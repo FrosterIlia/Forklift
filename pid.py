@@ -1,7 +1,7 @@
 import time
 
 class PID:
-    def __init__(self, kp, ki, kd, setpoint = 0):
+    def __init__(self, kp, ki, kd, setpoint = 0, inverted = 0, i_min = -170, i_max = 170):
         self.kp = kp
         self.ki = ki
         self.kd = kd
@@ -10,30 +10,43 @@ class PID:
         self.output = 0
 
         self.I = 0
+        
+        # Adjustable integral windup limits
+        self.i_min = i_min
+        self.i_max = i_max
 
         self.prev_time = time.time()
         self.prev_error = 0
         self.error = 0
+        
+        self.inverted = inverted
 
 
-    def compute(self):  #computing PID output using variable dt
-        error = (self.setpoint - self.input) # negative sign because system is cooling
-        self.I = self.I + error * self.ki * (time.time() - self.prev_time) # multiplying by ki here
-        D = (error - self.prev_error) / (time.time() - self.prev_time)
-        D = -D # negative sign because system is cooling
+    def compute(self):  
+        current_time = time.time()
+        dt = current_time - self.prev_time
+        
+        # Prevent divide-by-zero if the loop runs instantly
+        if dt <= 0.0:
+            dt = 0.001 
 
-        self.output = error * self.kp + self.I + D * self.kd # computing output
-        self.prev_error = self.error
-        self.prev_time = time.time()
-    
-    def compute_with_error(self, error):
-        self.I = self.I + error * self.ki * (time.time() - self.prev_time) # multiplying by ki here
-        D = (error - self.prev_error) / (time.time() - self.prev_time)
-        D = -D # negative sign because system is cooling
+        error = (self.setpoint - self.input)
+        
+        if self.inverted:
+            error = -error # Apply to the local variable!
 
-        self.output = error * self.kp + self.I + D * self.kd # computing output
-        self.prev_error = self.error
-        self.prev_time = time.time()
+        self.I = self.I + (error * self.ki * dt) 
+        print(self.I)
+        
+        # Apply the adjustable limits
+        self.I = max(min(self.I, self.i_max), self.i_min)
+        
+        D = (error - self.prev_error) / dt
+
+        self.output = (error * self.kp) + self.I + (D * self.kd) 
+        
+        self.prev_error = error # Store local error for next time
+        self.prev_time = current_time
 
     def get_output(self):
         return self.output
@@ -43,3 +56,7 @@ class PID:
 
     def set_input(self, input):
         self.input = input
+
+    def set_i_limits(self, i_min, i_max):
+        self.i_min = i_min
+        self.i_max = i_max

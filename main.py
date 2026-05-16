@@ -14,6 +14,7 @@ from Servo import Servo
 from pose_estimator import PoseEstimator
 from homography_matrix_def import *
 from constants import *
+from position_controller import PositionController, Position
 
 IP = '192.168.0.100'
 PORT_1 = 4015
@@ -33,15 +34,17 @@ if not pi.connected:
 
 print("Connected to pigpio!")
 
-servo_1 = Servo(15, 30, 0, pi)
-servo_2 = Servo(14, 30, 0, pi)
-servo_3 = Servo(12, 30, 0, pi)
-servo_4 = Servo(19, 30, 0, pi)
+servo_1 = Servo(SERVO_1_PIN, 30, 0, pi)
+servo_2 = Servo(SERVO_2_PIN, 30, 0, pi)
+servo_3 = Servo(SERVO_3_PIN, 30, 0, pi)
+servo_4 = Servo(SERVO_4_PIN, 30, 0, pi)
 
 # drive_controller = MecanumDrive(pi, 75, 40)
 drive_controller = MecanumDrive(pi, 1, 1)
 
 pose_estimator = PoseEstimator(FORKLIFT_ARUCO_ID)
+
+position_controller = PositionController()
 
 if __name__ == "__main__":
     try:
@@ -55,6 +58,9 @@ if __name__ == "__main__":
                 state = pose_estimator.estimate_pose(frame_top)
                 if state:
                     x, y, theta = state
+                    current_position = Position(x, y, theta)
+                    target_position = Position(50, 300, 90)
+                    print(position_controller.get_local_velocities(current_position, target_position))
                     print(f"Robot Location: X: {x:.1f}mm, Y: {y:.1f}mm, Heading: {math.degrees(theta):.1f} degrees")
                 else:
                     print("Robot not detected.")
@@ -66,6 +72,9 @@ if __name__ == "__main__":
             # ret, frame = cap.read()
             
             # cv2.imshow('camera', frame)
+            
+            
+            
             
             
                 
